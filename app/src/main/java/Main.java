@@ -5,9 +5,8 @@ import view.Explorer;
 import utils.ConfigParser;
 
 import javax.swing.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 public class Main implements Runnable {
     public static void main(String[] args) {
@@ -43,8 +42,15 @@ public class Main implements Runnable {
 
     @Override
     public void run() {
-        ConfigParser cp = new ConfigParser();
-        cp.parse(".explorer.conf");
+        File file = new File("..");
+        System.out.println(file.isDirectory());
+        System.out.println(file.getAbsolutePath());
+        if (file.isDirectory()) {
+            List<String> files = new LinkedList<>(Arrays.stream(file.list()).toList());
+            for (String s : files) {
+                System.out.println(s);
+            }
+        }
         Explorer explorer = new Explorer();
     }
 }

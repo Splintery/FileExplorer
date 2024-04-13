@@ -9,7 +9,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class ConfigParser {
-    private List<String> bookmarks;
+    public List<String> bookmarks;
 
     private Map<String, Actions> extensions;
 
