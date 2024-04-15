@@ -10,17 +10,23 @@ import java.util.List;
 
 public class FolderPanel extends JPanel {
 
-    List<JLabel> files;
+    NavigationPanel parent;
 
-    public FolderPanel(String filePath) {
+    List<SelectableNavigationLabel> files;
+    int index;
+
+    public FolderPanel(String filePath, int index, NavigationPanel parent) {
         super();
+        this.index = index;
+        this.parent = parent;
+        setBackground(Color.BLACK);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         files = new LinkedList<>();
         File file = new File(filePath);
-        if (file.isDirectory()) {
-            for (String path : Arrays.stream(file.list()).toList()) {
-                files.add(new JLabel(path));
-            }
+        for (String path : Arrays.stream(file.list()).toList()) {
+            SelectableNavigationLabel label = new SelectableNavigationLabel(path, file.getPath(), index, parent, this);
+            label.setAlignmentX(Component.CENTER_ALIGNMENT);
+            files.add(label);
         }
         for (JLabel label : files) {
             add(label);

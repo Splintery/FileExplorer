@@ -6,19 +6,27 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 
 import static com.sun.java.accessibility.util.AWTEventMonitor.addActionListener;
 
-public class SelectableBookmarkLabel extends JLabel implements ActionListener, MouseListener {
+public class SelectableNavigationLabel extends JLabel implements ActionListener, MouseListener {
 
-    private BookmarkPanel parent;
+    private final NavigationPanel grandpa;
+    private final FolderPanel parent;
+    private final int index;
     public boolean isSelected = false;
 
-    public SelectableBookmarkLabel(String str, BookmarkPanel parent) {
+    private String filePath;
+
+    public SelectableNavigationLabel(String str, String filePath, int index, NavigationPanel grandpa, FolderPanel parent) {
         super(str);
         setForeground(Explorer.UNSELECTED_TEXT_COLOR);
         setFont(new Font(Explorer.APP_FONT, Font.PLAIN, Explorer.TEXT_FONT_SIZE));
+        this.filePath = filePath;
+        this.grandpa = grandpa;
         this.parent = parent;
+        this.index = index;
         addMouseListener(this);
         addActionListener(this);
     }
@@ -26,11 +34,11 @@ public class SelectableBookmarkLabel extends JLabel implements ActionListener, M
     public void select() {
         isSelected = true;
         setForeground(Explorer.SELECTED_TEXT_COLOR);
-        parent.addFolderPanel(getText(), 0);
+        grandpa.addFolderPanel(filePath + File.separator + getText(), index + 1);
     }
     public void deselect() {
         if (isSelected) {
-            parent.addFolderPanel(".", 0);
+            grandpa.removeFolderPanel(index + 1);
         }
         isSelected = false;
         setForeground(Explorer.UNSELECTED_TEXT_COLOR);
@@ -40,7 +48,7 @@ public class SelectableBookmarkLabel extends JLabel implements ActionListener, M
         if (isSelected) {
             deselect();
         } else {
-            for (SelectableBookmarkLabel label : parent.bookmarkLabels) {
+            for (SelectableNavigationLabel label : parent.files) {
                 label.deselect();
             }
             select();
@@ -51,26 +59,17 @@ public class SelectableBookmarkLabel extends JLabel implements ActionListener, M
     public void actionPerformed(ActionEvent actionEvent) {
         performAction();
     }
-
     @Override
     public void mouseClicked(MouseEvent mouseEvent) {
         performAction();
     }
 
     @Override
-    public void mousePressed(MouseEvent mouseEvent) {
-
-    }
+    public void mousePressed(MouseEvent mouseEvent) {}
     @Override
-    public void mouseReleased(MouseEvent mouseEvent) {
-
-    }
+    public void mouseReleased(MouseEvent mouseEvent) {}
     @Override
-    public void mouseEntered(MouseEvent mouseEvent) {
-
-    }
+    public void mouseEntered(MouseEvent mouseEvent) {}
     @Override
-    public void mouseExited(MouseEvent mouseEvent) {
-
-    }
+    public void mouseExited(MouseEvent mouseEvent) {}
 }

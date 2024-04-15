@@ -42,15 +42,6 @@ public class Main implements Runnable {
 
     @Override
     public void run() {
-        File file = new File("..");
-        System.out.println(file.isDirectory());
-        System.out.println(file.getAbsolutePath());
-        if (file.isDirectory()) {
-            List<String> files = new LinkedList<>(Arrays.stream(file.list()).toList());
-            for (String s : files) {
-                System.out.println(s);
-            }
-        }
         Explorer explorer = new Explorer();
     }
 }
