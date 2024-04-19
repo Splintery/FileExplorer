@@ -1,9 +1,12 @@
-package view;
+package view.bookmark;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
+
+import view.Explorer;
+
 
 public class BookmarkPanel extends JPanel {
 
@@ -22,13 +25,13 @@ public class BookmarkPanel extends JPanel {
         titleContainer = new JPanel();
         titleContainer.setLayout(new GridBagLayout());
         titleContainer.setPreferredSize(new Dimension(150, 50));
-        titleContainer.setBackground(Color.RED);
+        titleContainer.setBackground(Explorer.BACKGROUND_TITLE_COLOR_DARK);
         titleLabel = new JLabel("BookMarks");
         titleLabel.setFont(new Font(Explorer.APP_FONT, Font.PLAIN, Explorer.TITLE_FONT_SIZE));
         titleContainer.add(titleLabel);
 
         contentContainer = new JPanel();
-        contentContainer.setBackground(Color.BLUE);
+        contentContainer.setBackground(Explorer.BACKGROUND_BOOKMARK_COLOR_DARK);
         contentContainer.setLayout(new BoxLayout(contentContainer, BoxLayout.Y_AXIS));
 
         bookmarkLabels = new LinkedList<>();

@@ -1,4 +1,4 @@
-package view;
+package view.navigation;
 
 import javax.swing.*;
 import java.awt.*;
@@ -7,6 +7,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+
+import view.Explorer;
 
 import static com.sun.java.accessibility.util.AWTEventMonitor.addActionListener;
 
@@ -34,14 +36,16 @@ public class SelectableNavigationLabel extends JLabel implements ActionListener,
     public void select() {
         isSelected = true;
         setForeground(Explorer.SELECTED_TEXT_COLOR);
+        grandpa.setNavLabel(filePath + File.separator + getText());
         grandpa.addFolderPanel(filePath + File.separator + getText(), index + 1);
     }
     public void deselect() {
         if (isSelected) {
-            grandpa.removeFolderPanel(index + 1);
+            grandpa.removeFolderPanel(filePath + File.separator + getText(), index + 1);
+            grandpa.setNavLabel(parent.folderPath);
+            isSelected = false;
+            setForeground(Explorer.UNSELECTED_TEXT_COLOR);
         }
-        isSelected = false;
-        setForeground(Explorer.UNSELECTED_TEXT_COLOR);
     }
 
     public void performAction() {
