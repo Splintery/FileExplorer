@@ -23,7 +23,7 @@ public class NavigationPanel extends JPanel {
         titleContainer.setBackground(Explorer.BACKGROUND_TITLE_COLOR_DARK);
         titleContainer.setPreferredSize(new Dimension(150, 50));
         titleContainer.setLayout(new GridBagLayout());
-        navTitleLabel = new JLabel("Navigation");
+        navTitleLabel = new JLabel(".");
         navTitleLabel.setFont(new Font(Explorer.APP_FONT, Font.PLAIN, Explorer.TITLE_FONT_SIZE));
         titleContainer.add(navTitleLabel);
 
@@ -56,7 +56,7 @@ public class NavigationPanel extends JPanel {
             parent.pack();
         }
     }
-    public String getExtension(String filePath) {
+    private String getExtension(String filePath) {
         String reversedFileExtension = "";
         for (int i = filePath.length(); i >= 0; i--) {
             reversedFileExtension += filePath.substring(i - 1, i);
@@ -93,5 +93,8 @@ public class NavigationPanel extends JPanel {
     }
     public void setNavLabel(String newLabel) {
         navTitleLabel.setText(newLabel);
+    }
+    public String getCurrentFolder() {
+        return navTitleLabel.getText();
     }
 }

@@ -2,17 +2,19 @@ package view.navigation;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.*;
 import java.io.File;
+import java.io.IOException;
 
 import view.Explorer;
+import view.bookmark.SelectableBookmarkLabel;
 
 import static com.sun.java.accessibility.util.AWTEventMonitor.addActionListener;
 
-public class SelectableNavigationLabel extends JLabel implements ActionListener, MouseListener {
+public class SelectableNavigationLabel extends JLabel implements ActionListener, MouseListener, MouseMotionListener {
 
     private final NavigationPanel grandpa;
     private final FolderPanel parent;
@@ -31,23 +33,27 @@ public class SelectableNavigationLabel extends JLabel implements ActionListener,
         this.index = index;
         addMouseListener(this);
         addActionListener(this);
+        addMouseMotionListener(this);
+        setTransferHandler(new ExportTransferHandler(getFilePath()));
+    }
+    public String getFilePath() {
+        return filePath + File.separator + getText();
     }
 
     public void select() {
         isSelected = true;
         setForeground(Explorer.SELECTED_TEXT_COLOR);
-        grandpa.setNavLabel(filePath + File.separator + getText());
-        grandpa.addFolderPanel(filePath + File.separator + getText(), index + 1);
+        grandpa.setNavLabel(getFilePath());
+        grandpa.addFolderPanel(getFilePath(), index + 1);
     }
     public void deselect() {
         if (isSelected) {
-            grandpa.removeFolderPanel(filePath + File.separator + getText(), index + 1);
+            grandpa.removeFolderPanel(getFilePath(), index + 1);
             grandpa.setNavLabel(parent.folderPath);
             isSelected = false;
             setForeground(Explorer.UNSELECTED_TEXT_COLOR);
         }
     }
-
     public void performAction() {
         if (isSelected) {
             deselect();
@@ -67,7 +73,6 @@ public class SelectableNavigationLabel extends JLabel implements ActionListener,
     public void mouseClicked(MouseEvent mouseEvent) {
         performAction();
     }
-
     @Override
     public void mousePressed(MouseEvent mouseEvent) {}
     @Override
@@ -76,4 +81,14 @@ public class SelectableNavigationLabel extends JLabel implements ActionListener,
     public void mouseEntered(MouseEvent mouseEvent) {}
     @Override
     public void mouseExited(MouseEvent mouseEvent) {}
+    @Override
+    public void mouseDragged(MouseEvent mouseEvent) {
+        SelectableNavigationLabel snl = (SelectableNavigationLabel)mouseEvent.getSource();
+        TransferHandler th = snl.getTransferHandler();
+        th.exportAsDrag(snl, mouseEvent, TransferHandler.COPY);
+    }
+    @Override
+    public void mouseMoved(MouseEvent mouseEvent) {
+
+    }
 }

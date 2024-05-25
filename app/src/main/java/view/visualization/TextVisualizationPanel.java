@@ -12,6 +12,7 @@ public class TextVisualizationPanel extends VisualizationPanel {
         super(parent, filePath);
         this.textArea = textArea;
         textArea.setLineWrap(true);
+        textArea.setEnabled(false);
 
         textArea.setForeground(Color.WHITE);
         textArea.setBackground(Explorer.BACKGROUND_NAV_COLOR_DARK);

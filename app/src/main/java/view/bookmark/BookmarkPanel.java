@@ -38,10 +38,13 @@ public class BookmarkPanel extends JPanel {
 
         add(titleContainer, BorderLayout.NORTH);
         add(new JScrollPane(contentContainer, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
+        setTransferHandler(new BookmarkTransferHandler(parent));
     }
 
     public void setBookmarks(List<String> bookmarks) {
         if (bookmarks != null) {
+            bookmarkLabels.clear();
+            contentContainer.removeAll();
             for (String path : bookmarks) {
                 SelectableBookmarkLabel label = new SelectableBookmarkLabel(path, this);
                 label.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -51,6 +54,10 @@ public class BookmarkPanel extends JPanel {
         } else {
             System.out.println("Failed to display bookmarks");
         }
+    }
+
+    public List<SelectableBookmarkLabel> getBookmarks() {
+        return bookmarkLabels;
     }
 
     public void addFolderPanel(String filePath, int callerIndex) {

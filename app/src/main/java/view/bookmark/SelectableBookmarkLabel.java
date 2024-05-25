@@ -28,6 +28,7 @@ public class SelectableBookmarkLabel extends JLabel implements ActionListener, M
     public void select() {
         isSelected = true;
         setForeground(Explorer.SELECTED_TEXT_COLOR);
+        parent.parent.setNavLabel(getText());
         parent.addFolderPanel(getText(), 0);
     }
     public void deselect() {

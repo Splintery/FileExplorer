@@ -29,7 +29,7 @@ public class FolderPanel extends JPanel {
         folderPath = file.getPath();
         for (String fileName : Arrays.stream(file.list()).toList()) {
             SelectableNavigationLabel label = new SelectableNavigationLabel(fileName, file.getPath(), index, parent, this);
-            label.setAlignmentX(Component.CENTER_ALIGNMENT);
+//            label.setAlignmentX(Component.CENTER_ALIGNMENT);
             files.add(label);
         }
         for (JLabel label : files) {
