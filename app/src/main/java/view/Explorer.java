@@ -3,23 +3,27 @@ package view;
 import utils.FileAction;
 import utils.ConfigParser;
 
-import utils.FinderSwingWorker;
-import view.Dialog.EditBookmarkDialog;
+import view.dialog.*;
+import view.find.FindResultPanel;
+import view.find.FinderSwingWorker;
 import view.bookmark.BookmarkPanel;
 import view.bookmark.SelectableBookmarkLabel;
 import view.navigation.NavigationPanel;
 import view.visualization.VisualizationPanelBuilder;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class Explorer extends JFrame implements ActionListener, WindowListener {
 
@@ -28,6 +32,7 @@ public class Explorer extends JFrame implements ActionListener, WindowListener {
     public static final String APP_FONT = "Courier";
     public static final Color SELECTED_TEXT_COLOR = Color.RED;
     public static final Color UNSELECTED_TEXT_COLOR = Color.WHITE;
+    public static final Color UNSELECTED_DIR_COLOR = Color.GRAY;
 
     public static final Color BACKGROUND_NAV_COLOR_DARK = new Color(30, 40, 65);
     public static final Color BACKGROUND_TITLE_COLOR_DARK = new Color(95, 105, 130);
@@ -39,7 +44,13 @@ public class Explorer extends JFrame implements ActionListener, WindowListener {
     private JMenuBar menuBar;
 
     private EditBookmarkDialog editBookmarksDialog;
-    private JDialog editVisualizer;
+    private EditVisualisationDialog editVisualizer;
+    private FindDialog findDialog;
+    private RenameDialog renameDialog;
+    private DeleteDialog deleteDialog;
+    private MoveDialog moveDialog;
+    private ChmodDialog chmodDialog;
+    private CreateDirDialog createDirDialog;
 
     private JSplitPane mainPanel;
     private BookmarkPanel bookmarkPane;
@@ -51,9 +62,11 @@ public class Explorer extends JFrame implements ActionListener, WindowListener {
     public boolean darkTheme = true;
     public int visualizationDividerLocation = 300;
 
+    FindResultPanel findResultPane;
+
     public Explorer() {
         userHomeDir = System.getProperty("user.home");
-        parser = new ConfigParser(userHomeDir + FileSystems.getDefault().getSeparator() + ".explorer.conf");
+        parser = new ConfigParser(userHomeDir);
         setTitle("Explorer");
         setMinimumSize(new Dimension(900, 600));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -68,7 +81,6 @@ public class Explorer extends JFrame implements ActionListener, WindowListener {
         String[][] toolBarTitles = {
                 {"Config", "Modify bookmarks and file visualizations"},
                 {"Find", "Find file/folder on computer"},
-                {"Tools", "Tinker with files/folders"},
                 {"Preferences", "Change color schemes"}
         };
         for (String[] titles : toolBarTitles) {
@@ -87,41 +99,73 @@ public class Explorer extends JFrame implements ActionListener, WindowListener {
         menuBar.getMenu(0).add(editBookmarks);
         menuBar.getMenu(0).add(editVisualizer);
 
+        JMenuItem findFromCurrentFolder = new JMenuItem("From Current Folder");
         JMenuItem findFromHome = new JMenuItem("From Home");
 
+        findFromCurrentFolder.addActionListener(this);
         findFromHome.addActionListener(this);
 
+        menuBar.getMenu(1).add(findFromCurrentFolder);
         menuBar.getMenu(1).add(findFromHome);
-
-        JMenuItem rename = new JMenuItem("Rename");
-        JMenuItem move = new JMenuItem("Move");
-        JMenuItem delete = new JMenuItem("Delete");
-        JMenuItem chmod = new JMenuItem("Chmod");
-        JMenuItem create = new JMenuItem("Create");
-        menuBar.getMenu(2).add(rename);
-        menuBar.getMenu(2).add(move);
-        menuBar.getMenu(2).add(delete);
-        menuBar.getMenu(2).add(chmod);
-        menuBar.getMenu(2).add(create);
 
         JMenuItem darkTheme = new JMenuItem("Dark theme");
         JMenuItem lightTheme = new JMenuItem("Light theme");
         darkTheme.setEnabled(false);
-        menuBar.getMenu(3).add(darkTheme);
-        menuBar.getMenu(3).add(lightTheme);
+        menuBar.getMenu(2).add(darkTheme);
+        menuBar.getMenu(2).add(lightTheme);
 
 
         setJMenuBar(menuBar);
     }
     private void initDialogs() {
         editBookmarksDialog = new EditBookmarkDialog(this, "Edit bookmarks");
+        findDialog = new FindDialog(this, "Find");
+        editVisualizer = new EditVisualisationDialog(this, "Edit visualisations");
+        renameDialog = new RenameDialog(this, "Rename current folder/file");
+        deleteDialog = new DeleteDialog(this, "Confirmation");
+        moveDialog = new MoveDialog(this, "Move current folder/file");
+        chmodDialog = new ChmodDialog(this, "Change current folder/file accessibility");
+        createDirDialog = new CreateDirDialog(this, "Create directory in current folder");
+    }
+    private void initLeftMenuButtons() {
+        JPanel modifyPanel = new JPanel();
+        modifyPanel.setLayout(new BoxLayout(modifyPanel, BoxLayout.Y_AXIS));
+        modifyPanel.setAlignmentX(SwingConstants.CENTER);
+        modifyPanel.setAlignmentY(SwingConstants.CENTER);
+        modifyPanel.setPreferredSize(new Dimension(80, 50));
 
+        JButton rename = new JButton("Rename");
+        rename.setFont(new Font(APP_FONT, Font.BOLD, 14));
+        rename.setMaximumSize(new Dimension(75, 65));
+        rename.addActionListener(this);
+        modifyPanel.add(rename);
 
-        editVisualizer = new JDialog(this, "Edit file visualizer");
-        editVisualizer.setLayout(new GridBagLayout());
-        editVisualizer.add(new JLabel("test"));
-        editVisualizer.setSize(new Dimension(300, 300));
-        editVisualizer.setLocationRelativeTo(null);
+        JButton del = new JButton("Delete");
+        del.setFont(new Font(APP_FONT, Font.BOLD, 14));
+        del.setMaximumSize(new Dimension(75, 65));
+        del.addActionListener(this);
+        modifyPanel.add(del);
+
+        JButton ch = new JButton("Chmod");
+        ch.setFont(new Font(APP_FONT, Font.BOLD, 14));
+        ch.setMaximumSize(new Dimension(75, 65));
+        ch.addActionListener(this);
+        modifyPanel.add(ch);
+
+        JButton move = new JButton("Move");
+        move.setFont(new Font(APP_FONT, Font.BOLD, 14));
+        move.setMaximumSize(new Dimension(75, 65));
+        move.addActionListener(this);
+        modifyPanel.add(move);
+
+        JButton mkdir = new JButton("Mkdir");
+        mkdir.setFont(new Font(APP_FONT, Font.BOLD, 14));
+        mkdir.setMaximumSize(new Dimension(75, 65));
+        mkdir.addActionListener(this);
+        modifyPanel.add(mkdir);
+
+        getContentPane().add(modifyPanel, BorderLayout.WEST);
+
     }
     public void init() {
         initMenuBar();
@@ -149,6 +193,8 @@ public class Explorer extends JFrame implements ActionListener, WindowListener {
         c.setLayout(new BorderLayout());
         c.add(mainPanel, BorderLayout.CENTER);
 
+        initLeftMenuButtons();
+
         pack();
         setVisible(true);
     }
@@ -159,30 +205,23 @@ public class Explorer extends JFrame implements ActionListener, WindowListener {
     public void setVisualizationPane(FileAction action, String filePath) {
         switch (action) {
             case NONE:
-                System.out.println("Extension not supported");
-
                 visualizationPanelBuilder.setFilePath(filePath);
                 contentPanel.setRightComponent(visualizationPanelBuilder.build());
                 contentPanel.setDividerLocation(visualizationDividerLocation);
                 break;
             case TEXT:
-                System.out.println("Text extension");
-
                 visualizationPanelBuilder.setFilePath(filePath);
                 visualizationPanelBuilder.setTextArea(visualizationPanelBuilder.readFile(filePath));
                 contentPanel.setRightComponent(visualizationPanelBuilder.build());
                 contentPanel.setDividerLocation(visualizationDividerLocation);
                 break;
             case IMAGE:
-                System.out.println("Image extension");
-
                 visualizationPanelBuilder.setFilePath(filePath);
                 visualizationPanelBuilder.setImageIcon(new ImageIcon(filePath));
                 contentPanel.setRightComponent(visualizationPanelBuilder.build());
                 contentPanel.setDividerLocation(visualizationDividerLocation);
                 break;
             case GIF:
-                System.out.println("Gif extension");
                 // TODO create a panel to display the gif
                 break;
             default:
@@ -198,18 +237,58 @@ public class Explorer extends JFrame implements ActionListener, WindowListener {
 
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
-        if (actionEvent.getSource() == menuBar.getMenu(0).getItem(0)) {
-            editBookmarksDialog.loadDialog();
-        } else if (actionEvent.getSource() == menuBar.getMenu(0).getItem(1)) {
-            System.out.println("YEEEEEY");
-            editVisualizer.setVisible(true);
-        } else if (actionEvent.getSource() == menuBar.getMenu(1).getItem(0)) {
-            System.out.println("finding");
-            FinderSwingWorker fw = new FinderSwingWorker(this, "*.java");
-            fw.execute();
+        switch (actionEvent.getActionCommand()) {
+            case "Edit bookmarks":
+                editBookmarksDialog.loadDialog();
+                break;
+            case "Edit file visualizer":
+                editVisualizer.loadDialog();
+                break;
+            case "From Current Folder":
+                if (findResultPane != null) {
+                    removeFindView();
+                }
+                findDialog.loadDialog(getCurrentFolder());
+                break;
+            case "From Home":
+                if (findResultPane != null) {
+                    removeFindView();
+                }
+                findDialog.loadDialog(getUserHomeDir());
+                break;
+            case "Rename":
+                renameDialog.loadDialog();
+                break;
+            case "Delete":
+                deleteDialog.loadDialog();
+                break;
+            case "Chmod":
+                chmodDialog.loadDialog();
+                break;
+            case "Move":
+                moveDialog.loadDialog();
+                break;
+            case "Mkdir":
+                createDirDialog.loadDialog();
+                break;
+            default:
+                break;
         }
     }
 
+    public void generateFindView(String folderPath, String regex) {
+        FinderSwingWorker fw = new FinderSwingWorker(this, folderPath, regex);
+        fw.execute();
+    }
+    public void addFindView(List<String> l) {
+        findResultPane = new FindResultPanel(this, l);
+        getContentPane().add(findResultPane, BorderLayout.EAST);
+        validate();
+    }
+    public void removeFindView() {
+        getContentPane().remove(findResultPane);
+        validate();
+    }
     public List<SelectableBookmarkLabel> getBookmarks() {
         return bookmarkPane.getBookmarks();
     }
@@ -223,12 +302,48 @@ public class Explorer extends JFrame implements ActionListener, WindowListener {
         List<SelectableBookmarkLabel> list = bookmarkPane.getBookmarks();
         LinkedList<String> newBkL = new LinkedList<>();
         for (SelectableBookmarkLabel sbkl : list) {
-            newBkL.add(sbkl.getText());
+            newBkL.add(sbkl.getFilePath());
         }
         newBkL.add(newBookmark);
         setBookmarks(newBkL);
-        System.out.println(newBookmark);
     }
+    public void addExtension(String ext, String visual) {
+        Map<String, FileAction> newExt = parser.getExtensions();
+        newExt.put(ext, parser.getFileActionFromString(visual));
+        parser.setExtensions(newExt);
+    }
+    public void createDir(String location, String name) {
+        File loc = new File(location);
+        if (loc.exists() && loc.isDirectory()) {
+            System.out.println(location + File.separator + name);
+            File newDir = new File(location + File.separator + name);
+            if (!newDir.exists()) {
+                newDir.mkdir();
+            }
+        }
+    }
+    public void rename(String newName, String oldName) {
+        File old = new File(oldName);
+        if (old.exists()) {
+            File newDest = new File(newName);
+            if (!newDest.exists()) {
+                if(!old.renameTo(newDest)) {
+                    System.out.println("Failed to rename");
+                } else {
+                    System.out.println("Renamed: " + oldName + ",to: " + newName);
+                }
+            }
+        }
+    }
+    public boolean chmod(boolean writable, boolean readable, boolean executable, boolean ownerOnly) {
+        File f = new File(getCurrentFolder());
+        return (
+                    f.setWritable(writable, ownerOnly)
+                    && f.setReadable(readable, ownerOnly)
+                    && f.setExecutable(executable, ownerOnly)
+                );
+    }
+
     public String getUserHomeDir() {
         return userHomeDir;
     }
@@ -238,6 +353,7 @@ public class Explorer extends JFrame implements ActionListener, WindowListener {
     public void setNavLabel(String newLabel) {
         navigationPane.setNavLabel(newLabel);
     }
+
     public void removeFolderPanel(String filePath, int callerIndex) {
         navigationPane.removeFolderPanel(filePath, callerIndex);
     }

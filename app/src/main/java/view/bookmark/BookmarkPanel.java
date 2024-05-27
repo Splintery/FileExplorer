@@ -45,8 +45,9 @@ public class BookmarkPanel extends JPanel {
         if (bookmarks != null) {
             bookmarkLabels.clear();
             contentContainer.removeAll();
+            bookmarks.sort(null);
             for (String path : bookmarks) {
-                SelectableBookmarkLabel label = new SelectableBookmarkLabel(path, this);
+                SelectableBookmarkLabel label = new SelectableBookmarkLabel(path, parent, this);
                 label.setAlignmentX(Component.CENTER_ALIGNMENT);
                 bookmarkLabels.add(label);
                 contentContainer.add(label, BoxLayout.X_AXIS);

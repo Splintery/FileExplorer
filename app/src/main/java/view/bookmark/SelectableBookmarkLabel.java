@@ -1,79 +1,54 @@
 package view.bookmark;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 
+import utils.SelectableLabel;
 import view.Explorer;
 
-import static com.sun.java.accessibility.util.AWTEventMonitor.addActionListener;
 
-public class SelectableBookmarkLabel extends JLabel implements ActionListener, MouseListener {
-
+public class SelectableBookmarkLabel extends SelectableLabel {
     private BookmarkPanel parent;
-    public boolean isSelected = false;
+    private String filePath;
 
-    public SelectableBookmarkLabel(String str, BookmarkPanel parent) {
-        super(str);
-        setForeground(Explorer.UNSELECTED_TEXT_COLOR);
-        setFont(new Font(Explorer.APP_FONT, Font.PLAIN, Explorer.TEXT_FONT_SIZE));
+    public SelectableBookmarkLabel(String str, Explorer explorer, BookmarkPanel parent) {
+        super(str, explorer);
+        setText(getLastFolder(str));
+        setToolTipText(str);
         this.parent = parent;
-        addMouseListener(this);
-        addActionListener(this);
-    }
-
-    public void select() {
-        isSelected = true;
-        setForeground(Explorer.SELECTED_TEXT_COLOR);
-        parent.parent.setNavLabel(getText());
-        parent.addFolderPanel(getText(), 0);
-    }
-    public void deselect() {
-        if (isSelected) {
-            parent.addFolderPanel(".", 0);
-        }
-        isSelected = false;
-        setForeground(Explorer.UNSELECTED_TEXT_COLOR);
-    }
-
-    public void performAction() {
-        if (isSelected) {
-            deselect();
+        filePath = str;
+        File f = new File(getFilePath());
+        if (f.isDirectory()) {
+            unselectedColor = Explorer.UNSELECTED_DIR_COLOR;
         } else {
-            for (SelectableBookmarkLabel label : parent.bookmarkLabels) {
-                label.deselect();
-            }
-            select();
+            unselectedColor = Explorer.UNSELECTED_TEXT_COLOR;
         }
+        setForeground(unselectedColor);
+    }
+
+    private String getLastFolder(String str) {
+        int index = 0;
+        for (int i = 0; i < str.length(); i++) {
+            if (str.substring(i).contains(File.separator)) {
+                index = i;
+            }
+        }
+        return str.substring(index);
     }
 
     @Override
-    public void actionPerformed(ActionEvent actionEvent) {
-        performAction();
+    public String getFilePath() {
+        return filePath;
     }
 
     @Override
-    public void mouseClicked(MouseEvent mouseEvent) {
-        performAction();
+    public String getFolderPath() {
+        return ".";
     }
 
     @Override
-    public void mousePressed(MouseEvent mouseEvent) {
-
-    }
-    @Override
-    public void mouseReleased(MouseEvent mouseEvent) {
-
-    }
-    @Override
-    public void mouseEntered(MouseEvent mouseEvent) {
-
-    }
-    @Override
-    public void mouseExited(MouseEvent mouseEvent) {
-
+    public List<SelectableLabel> getContainingList() {
+        return new LinkedList<>(parent.getBookmarks());
     }
 }

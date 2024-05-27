@@ -6,6 +6,8 @@ import java.io.File;
 
 import view.Explorer;
 
+import static java.lang.Math.max;
+
 public class NavigationPanel extends JPanel {
 
     Explorer parent;
@@ -39,10 +41,11 @@ public class NavigationPanel extends JPanel {
 
     public void addFolderPanel(String filePath, int callerIndex) {
         File file = new File(filePath);
+        System.out.println("File: " + filePath + ", isDirectory: " + file.isDirectory());
         if (file.isDirectory()) {
             removeFolders(callerIndex);
 
-            FolderPanel panel = new FolderPanel(filePath, callerIndex, this);
+            FolderPanel panel = new FolderPanel(filePath, callerIndex, parent);
             JScrollPane scroller = new JScrollPane(panel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
             scroller.setPreferredSize(new Dimension(panel.getLongestSize() * Explorer.TEXT_FONT_SIZE, 300));
             contentContainer.add(scroller);
@@ -59,8 +62,9 @@ public class NavigationPanel extends JPanel {
     private String getExtension(String filePath) {
         String reversedFileExtension = "";
         for (int i = filePath.length(); i >= 0; i--) {
-            reversedFileExtension += filePath.substring(i - 1, i);
-            if (filePath.substring(i - 1, i).equals(".")) {
+            String substring = filePath.substring(max(i - 1, 0), i);
+            reversedFileExtension += substring;
+            if (substring.equals(".")) {
                 break;
             }
         }

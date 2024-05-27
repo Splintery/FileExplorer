@@ -8,14 +8,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.util.List;
 
 import static com.sun.java.accessibility.util.AWTEventMonitor.addActionListener;
 
 public abstract class SelectableLabel extends JLabel implements MouseListener, ActionListener {
     protected Explorer explorer;
-    protected int index = 0;
+    protected int index = -1;
     protected boolean isSelected = false;
+    protected Color unselectedColor;
 
     public SelectableLabel(String str, Explorer explorer) {
         super(str);
@@ -41,7 +43,7 @@ public abstract class SelectableLabel extends JLabel implements MouseListener, A
             explorer.removeFolderPanel(getFilePath(), index + 1);
             explorer.setNavLabel(getFolderPath());
             isSelected = false;
-            setForeground(Explorer.UNSELECTED_TEXT_COLOR);
+            setForeground(unselectedColor);
         }
     }
     public void performAction() {

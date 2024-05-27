@@ -1,14 +1,15 @@
 package utils;
 
 import java.io.*;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import static utils.FileAction.NONE;
 
 public class ConfigParser {
     public List<String> bookmarks;
@@ -17,8 +18,8 @@ public class ConfigParser {
 
     private String configFile;
 
-    public ConfigParser(String configFile) {
-        this.configFile = configFile;
+    public ConfigParser(String userHome) {
+        configFile = userHome + File.separator + ".explorer.conf";
         File file = new File(configFile);
         if (!file.exists()) {
             try {
@@ -42,19 +43,16 @@ public class ConfigParser {
                 e.printStackTrace();
             }
         }
+        File rubbishBin = new File(userHome + File.separator + ".poubelle");
+        if (!rubbishBin.exists()) {
+            if (!rubbishBin.mkdir()) {
+                System.out.println("failed to create rubbish bin");
+                System.exit(0);
+            }
+        }
         // Parse /home/"username"/.explorer.conf
         parse();
     }
-
-//    private InputStream getFileAsInputStream(final String fileName) {
-//        InputStream ioStream = this.getClass()
-//            .getClassLoader()
-//            .getResourceAsStream(fileName);
-//        if (ioStream == null) {
-//            throw new IllegalArgumentException(fileName + " is not found");
-//        }
-//        return ioStream;
-//    }
 
     public String getFileContent(String fileName) {
         String content = "";
@@ -76,50 +74,57 @@ public class ConfigParser {
         return content;
     }
     public void parse() {
-        String bookmarkString = null;
+        String bookmarkString = "";
         String extensionString = "";
         try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
             String line;
-            int lineCounter = 0;
+            boolean switchString = false;
 
             while ((line = reader.readLine()) != null) {
-                if (lineCounter == 0) {
-                    bookmarkString = line;
+                if (!switchString) {
+                    bookmarkString += line;
                 } else {
                     extensionString += line;
                 }
-                lineCounter++;
+                if (line.contains("]")) {switchString = true;}
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        if (bookmarkString != null) {
+        if (!bookmarkString.isEmpty()) {
             bookmarks = gson.fromJson(bookmarkString, List.class);
-            System.out.println(bookmarks);
         }
         if (!extensionString.isEmpty()) {
             Map<String, String> tmp = gson.fromJson(extensionString, Map.class);
             extensions = new HashMap<>();
             for (String s : tmp.keySet()) {
-                extensions.put(s, getFileAction(tmp.get(s)));
+                extensions.put(s, getFileActionFromString(tmp.get(s)));
             }
-            System.out.println(extensions);
         }
     }
 
-    private FileAction getFileAction(String s) {
+    public FileAction getFileActionFromString(String s) {
         return switch (s) {
             case "TEXT" -> FileAction.TEXT;
             case "IMAGE" -> FileAction.IMAGE;
             case "GIF" -> FileAction.GIF;
-            default -> FileAction.NONE;
+            default -> NONE;
         };
+    }
+    public String getStringFromFileAction(FileAction fa) {
+        return switch (fa) {
+            case TEXT -> "TEXT";
+            case IMAGE -> "IMAGE";
+            case GIF -> "GIF";
+            default -> "NONE";
+        };
+
     }
 
 //    {".txt": "TEXT", ".java": "TEXT", ".jpg": "IMAGE", ".png": "IMAGE"}
     public FileAction getAction(String fileExtension) {
-        return extensions.get(fileExtension) != null ? extensions.get(fileExtension) : FileAction.NONE;
+        return extensions.get(fileExtension) != null ? extensions.get(fileExtension) : NONE;
     }
 
     /*
@@ -128,6 +133,7 @@ public class ConfigParser {
     */
 
     public void setBookmarks(List<String> newBookmarks) {
+        this.bookmarks = newBookmarks;
         try(
             BufferedWriter writer = new BufferedWriter(new FileWriter(configFile));
         ) {
@@ -139,13 +145,39 @@ public class ConfigParser {
                 }
             }
             format += "]\n";
-            System.out.println("WRITING: " + format);
             writer.write(format);
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             writer.write(gson.toJson(extensions));
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    public Map<String, FileAction> getExtensions() {return extensions;};
 
+    public void setExtensions(Map<String, FileAction> extensions) {
+        this.extensions = extensions;
+        List<String> ext = new LinkedList<>(extensions.keySet());
+        List<String> visual = new LinkedList<>();
+        for (String s : extensions.keySet()) {
+            visual.add(getStringFromFileAction(extensions.get(s)));
+        }
+        try(
+            BufferedWriter writer = new BufferedWriter(new FileWriter(configFile));
+        ) {
+            String format = "\n{";
+            for (int i = 0; i < ext.size(); i++) {
+                format += "\"" + ext.get(i) + "\": \"" + visual.get(i) + "\"";
+                if (i < ext.size() - 1) {
+                    format += ", ";
+                }
+            }
+
+            format += "}\n";
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            writer.write(gson.toJson(bookmarks));
+            writer.write(format);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

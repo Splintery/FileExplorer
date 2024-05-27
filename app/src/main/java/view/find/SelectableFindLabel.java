@@ -1,25 +1,22 @@
-package view.navigation;
+package view.find;
+
+import utils.SelectableLabel;
+import view.Explorer;
+import utils.ExportTransferHandler;
 
 import javax.swing.*;
-import java.awt.event.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-import utils.ExportTransferHandler;
-import utils.SelectableLabel;
-import view.Explorer;
+public class SelectableFindLabel extends SelectableLabel implements MouseMotionListener {
+    FindResultPanel parent;
 
-public class SelectableNavigationLabel extends SelectableLabel implements MouseMotionListener {
-
-    private final FolderPanel parent;
-    private String filePath;
-
-    public SelectableNavigationLabel(String str, String filePath, int index, Explorer explorer, FolderPanel parent) {
+    public SelectableFindLabel(String str, Explorer explorer, FindResultPanel findResultPanel) {
         super(str, explorer);
-        this.parent = parent;
-        this.filePath = filePath;
-        this.index = index;
+        this.parent = findResultPanel;
         File f = new File(getFilePath());
         if (f.isDirectory()) {
             unselectedColor = Explorer.UNSELECTED_DIR_COLOR;
@@ -33,7 +30,7 @@ public class SelectableNavigationLabel extends SelectableLabel implements MouseM
 
     @Override
     public void mouseDragged(MouseEvent mouseEvent) {
-        SelectableNavigationLabel snl = (SelectableNavigationLabel)mouseEvent.getSource();
+        SelectableFindLabel snl = (SelectableFindLabel) mouseEvent.getSource();
         TransferHandler th = snl.getTransferHandler();
         th.exportAsDrag(snl, mouseEvent, TransferHandler.COPY);
     }
@@ -42,16 +39,16 @@ public class SelectableNavigationLabel extends SelectableLabel implements MouseM
 
     @Override
     public String getFilePath() {
-        return filePath + File.separator + getText();
+        return getText();
     }
 
     @Override
     public String getFolderPath() {
-        return parent.folderPath;
+        return ".";
     }
 
     @Override
     public List<SelectableLabel> getContainingList() {
-        return new LinkedList<>(parent.files);
+        return new LinkedList<>(parent.getLabels());
     }
 }

@@ -1,4 +1,4 @@
-package view.navigation;
+package utils;
 
 import javax.swing.*;
 import java.awt.datatransfer.DataFlavor;

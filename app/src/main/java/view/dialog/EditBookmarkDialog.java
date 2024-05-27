@@ -1,4 +1,4 @@
-package view.Dialog;
+package view.dialog;
 
 import view.Explorer;
 import view.bookmark.SelectableBookmarkLabel;
@@ -51,7 +51,7 @@ public class EditBookmarkDialog extends JDialog implements ActionListener {
         deleteButtons.clear();
         contentPane.removeAll();
         for (SelectableBookmarkLabel bk : parent.getBookmarks()) {
-            bookMarks.add(bk.getText());
+            bookMarks.add(bk.getFilePath());
         }
         for (String key : bookMarks) {
             deleteButtons.add(new JToggleButton("Delete"));
@@ -81,7 +81,6 @@ public class EditBookmarkDialog extends JDialog implements ActionListener {
                 setVisible(false);
                 break;
             case "Cancel":
-                System.out.println("Changes canceled");
                 setVisible(false);
                 break;
             default:

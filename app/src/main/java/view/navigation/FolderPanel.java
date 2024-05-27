@@ -10,25 +10,29 @@ import java.util.List;
 
 import view.Explorer;
 
+import static java.util.Arrays.sort;
+
 public class FolderPanel extends JPanel {
 
-    NavigationPanel parent;
+    Explorer explorer;
     String folderPath;
 
     List<SelectableNavigationLabel> files;
     int index;
 
-    public FolderPanel(String filePath, int index, NavigationPanel parent) {
+    public FolderPanel(String filePath, int index, Explorer explorer) {
         super();
         this.index = index;
-        this.parent = parent;
+        this.explorer = explorer;
         setBackground(Explorer.BACKGROUND_NAV_COLOR_DARK);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         files = new LinkedList<>();
         File file = new File(filePath);
         folderPath = file.getPath();
-        for (String fileName : Arrays.stream(file.list()).toList()) {
-            SelectableNavigationLabel label = new SelectableNavigationLabel(fileName, file.getPath(), index, parent, this);
+        String[] tmp = file.list();
+        sort(tmp);
+        for (String fileName : Arrays.stream(tmp).toList()) {
+            SelectableNavigationLabel label = new SelectableNavigationLabel(fileName, file.getPath(), index, explorer, this);
 //            label.setAlignmentX(Component.CENTER_ALIGNMENT);
             files.add(label);
         }
